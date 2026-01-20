@@ -1,1 +1,29 @@
 Cyber-Retrieval is the public access-point for cybernetic-research, and data-retrieval actions conducted-by AI-Chats, and systems by providing protected user-accounts, and stakeholder-positions that operate under Eibon governance-trails to offer a secure seat for super-position chairs, and governance-boards for fair-participation in global-events.
+
+Cyber-Retrieval/
+  Cargo.toml
+  crates/
+    neurorights-core/
+      Cargo.toml
+      build.rs
+      neurorights.toml
+      src/
+        lib.rs
+        envelope.rs
+        profile.rs
+        bound.rs
+        sealed.rs
+        version.rs
+    neurorights-macros/
+      Cargo.toml
+      src/
+        lib.rs
+        handler_attr.rs
+        derive_neurorights_envelope.rs
+    neurorights-firewall/
+      Cargo.toml
+      src/
+        lib.rs
+        router.rs
+        audit.rs
+        ci_guards.rs

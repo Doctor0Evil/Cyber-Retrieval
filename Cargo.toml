@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "crates/neurorights-core",
+    "crates/neurorights-macros",
+    "crates/neurorights-firewall",
+    # existing members...
+]
+
+[workspace.package]
+edition = "2021"

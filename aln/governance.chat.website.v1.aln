@@ -1,0 +1,66 @@
+id: governance.chat.website.v1
+version: 1.0.0
+kind: governance
+description: >
+  Governance rules for CHAT-stake-gated website production under Eibon superchair
+  oversight. Maps stake roles to propose/review/publish permissions and quorum.
+
+anchors:
+  stake_asset: asset.chat.stake.v1
+  neurorights_envelope: neurorights.envelope.citizen.v1
+  content_policy: content.website.governance.v1
+  superposition_totem: governance.totem.superposition.v1
+
+roles:
+  stakeholder:
+    min_stake_ref: asset.chat.stake.v1:min_stake.stakeholder
+    min_contrib_index_ref: asset.chat.stake.v1:min_contrib_index.stakeholder
+    permissions:
+      - website.page.propose
+      - website.comment.propose
+
+  council:
+    min_stake_ref: asset.chat.stake.v1:min_stake.council
+    min_contrib_index_ref: asset.chat.stake.v1:min_contrib_index.council
+    permissions:
+      - website.page.propose
+      - website.page.review
+      - website.section.review
+      - website.comment.moderate
+
+  superchair:
+    min_stake_ref: asset.chat.stake.v1:min_stake.superchair
+    min_contrib_index_ref: asset.chat.stake.v1:min_contrib_index.superchair
+    permissions:
+      - website.page.publish
+      - website.section.publish
+      - website.sitewide.policy.update
+      - website.sitewide.rollback
+      - website.governance.veto
+
+quorum:
+  page_publish:
+    # minimum fraction of council approvals; superchair can finalize once met
+    council_approval_fraction: 0.51
+    superchair_required: true
+
+  section_publish:
+    council_approval_fraction: 0.67
+    superchair_required: true
+
+  sitewide_policy_update:
+    council_approval_fraction: 0.75
+    superchair_required: true
+
+constraints:
+  neurorights_required: true
+  risk_of_harm_ceiling: 0.3
+  retrieval_only_for_generation: true
+
+logging:
+  require_authorship_triplet: true
+  require_eibon_label: true
+  require_hexstamp: true
+  require_neurorights_profile: true
+
+hexstamp: "0x1a2f9c44d0e7b53a9c118e42a7ff01c1"

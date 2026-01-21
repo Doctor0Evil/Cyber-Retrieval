@@ -1,0 +1,48 @@
+id: asset.chat.stake.v1
+version: 1.0.0
+kind: asset
+description: >
+  CHAT stake-bearing asset definition for augmented-citizen governance roles
+  (stakeholder, council, superchair) under neurorights and Eibon oversight.
+
+anchors:
+  neurorights_envelope: neurorights.envelope.citizen.v1
+  governance_root: neurorights.governance.v1
+
+fields:
+  symbol: CHAT
+  decimals: 6
+
+  min_stake:
+    stakeholder: "1000.000000"
+    council:     "10000.000000"
+    superchair:  "100000.000000"
+
+  # Optional contribution / reputation indices (normalized [0,1])
+  min_contrib_index:
+    stakeholder: 0.0
+    council:     0.25
+    superchair:  0.50
+
+  # Hard neurorights constraints
+  neurorights:
+    no_exclusion_basic_services: true
+    no_score_from_inner_state:   true
+    no_neurocoercion:            true
+    revocable_at_will:           true
+    ecosocial_benefit_reporting: true
+
+  risk:
+    risk_of_harm_ceiling: 0.3
+    default_risk_of_harm: 0.08
+    default_knowledge_factor: 0.90
+    default_cybostate_factor: 0.92
+
+authorship:
+  class: augmented_citizen
+  required_triplet:
+    - userdid
+    - aln
+    - bostromaddress
+
+hexstamp: "0x4F91C7AB39D62E11"

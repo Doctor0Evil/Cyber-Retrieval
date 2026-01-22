@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Retrieval Interface | Augmented Citizen Access</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Tailwind Config for Custom Palette -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            base: '#FDFBF7',     /* Warm Off-White Background */
+                            surface: '#FFFFFF',   /* Pure White Cards */
+                            text: '#2D2A26',      /* Dark Warm Grey Text */
+                            muted: '#6B655F',     /* Muted Text */
+                            accent: '#D97706',    /* Warm Bronze/Amber */
+                            link: '#0D9488',      /* Teal for "Cyber" connection */
+                            danger: '#BE123C',    /* Muted Red for Risk */
+                            success: '#059669'    /* Green for Eco */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['Fira Code', 'Courier New', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles for nuances not covered by Tailwind utilities */
+        body {
+            background-color: #FDFBF7;
+            color: #2D2A26;
+        }
+        
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            height: 300px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Subtle scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F0EA; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D1D5DB; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9CA3AF; 
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* Animation for status pulse */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); opacity: 0; }
+            80%, 100% { opacity: 0; }
+        }
+        @keyframes pulse-dot {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1); }
+            100% { transform: scale(0.8); }
+        }
+        .live-dot {
+            position: relative;
+        }
+        .live-dot::before {
+            content: '';
+            position: absolute;
+            left: -4px; top: -4px;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background-color: #059669;
+            opacity: 0.4;
+            animation: pulse-dot 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) -.4s infinite;
+        }
+    </style>
+
+    <!-- Placeholder Comments Required by Prompt -->
+    <!-- Chosen Palette: "Organic Cybernetics" - Warm neutrals (Stone/Sand) background with Teal and Amber accents to represent the blend of ecology and technology. -->
+    <!-- Application Structure Plan: A Dashboard-style SPA. 
+         1. Sidebar/Top Nav: Context and navigation. 
+         2. "System Status" (Home): Live visualization of the 'Risk-of-Harm' metric and 'Eco-Impact' to immediately ground the user in the quantitative goals.
+         3. "Core Doctrines" (Mission): Cards breaking down the dense text into 'Vision', 'Goal', and 'Definition'.
+         4. "The Cookbook" (Protocols): Interactive list of rules and forbidden items (Sanitization).
+         5. "Governance & Eibon": Specific section to answer the prompt's question about Eibon using a 'Decoded File' metaphor. 
+    -->
+    <!-- Visualization & Content Choices: 
+         - Risk-of-Harm Monitor (Line Chart): Chosen to prove compliance with the "< 0.3" rule.
+         - Knowledge Source Allocator (Doughnut Chart): Visualizes the AI inputs (Perplexity, Qwen, etc.) mentioned.
+         - Status Indicators: CSS-based visual cues for "Rust Environment: Active" vs "Python: Blocked".
+         - Text is chunked into readable cards to make the complex source material digestible.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+</head>
+<body class="font-sans antialiased selection:bg-cyber-link selection:text-white flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <nav class="bg-white border-b border-stone-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        <span class="text-2xl font-bold text-cyber-link">⦿</span>
+                        <span class="font-bold text-lg tracking-wide text-cyber-text">CYBER<span class="font-light">RETRIEVAL</span></span>
+                    </div>
+                    <div class="hidden sm:ml-8 sm:flex sm:space-x-8" id="nav-links">
+                        <!-- Navigation Items (Populated by JS) -->
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex flex-col items-end text-xs text-cyber-muted">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> SYSTEM: ONLINE</span>
+                        <span>LOC: PHOENIX/SAN JOLLA GRID</span>
+                    </div>
+                    <button class="p-2 rounded-md text-cyber-muted hover:text-cyber-accent focus:outline-none">
+                        <span class="text-xl">⚙️</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Layout -->
+    <main class="flex-grow bg-cyber-base w-full">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            
+            <!-- Dynamic View Container -->
+            <div id="app-content" class="space-y-8">
+                <!-- Content injected via JS -->
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-stone-200 mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-sm text-cyber-muted">
+            <div>
+                <span class="font-semibold">Protocol:</span> ALN/Bostrom Identity Verified
+            </div>
+            <div class="mt-2 md:mt-0">
+                &copy; 2025 Cyber-Retrieval Sys. | Rust Environment Enforced | <span class="text-cyber-danger">Python Blocked</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Templates for Views (Hidden, cloned by JS) -->
+    
+    <!-- VIEW 1: DASHBOARD (System Status) -->
+    <template id="view-dashboard">
+        <!-- Intro Section -->
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-cyber-text mb-2">System Status & Metrics</h1>
+            <p class="text-cyber-muted max-w-3xl text-lg">
+                Real-time monitoring of the Cybernetic-Retrieval grid. This dashboard tracks the Risk-of-Harm index against the strict 0.3 threshold and visualizes the eco-recovery contributions.
+            </p>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Metric Card 1 -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-cyber-success relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-cyber-muted uppercase tracking-wider">Eco-Impact Score</p>
+                        <p class="text-3xl font-bold text-cyber-text mt-1" id="val-eco-score">94.2</p>
+                    </div>
+                    <span class="text-2xl text-cyber-success">🌱</span>
+                </div>
+                <p class="mt-4 text-xs text-cyber-muted">Contribution to ecological-sustainability</p>
+            </div>
+            
+            <!-- Metric Card 2 -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-cyber-link relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-cyber-muted uppercase tracking-wider">Knowledge Factor</p>
+                        <p class="text-3xl font-bold text-cyber-text mt-1" id="val-knowledge">High</p>
+                    </div>
+                    <span class="text-2xl text-cyber-link">🧠</span>
+                </div>
+                <p class="mt-4 text-xs text-cyber-muted">Sourced from Cybercore-Brain</p>
+            </div>
+
+            <!-- Metric Card 3 -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border-l-4 border-cyber-danger relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-cyber-muted uppercase tracking-wider">Risk-of-Harm Index</p>
+                        <p class="text-3xl font-bold text-cyber-danger mt-1" id="val-risk">0.12</p>
+                    </div>
+                    <span class="text-2xl text-cyber-danger">🛡️</span>
+                </div>
+                <p class="mt-4 text-xs text-cyber-muted">Strict Threshold: < 0.30</p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- Chart 1: Risk Monitor -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-stone-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-cyber-text">Live Risk-of-Harm Monitor</h3>
+                    <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-mono">SAFE STATE</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-cyber-muted italic border-t border-stone-100 pt-3">
+                    Protocol Constraint: If risk exceeds 0.3, system rejects request automatically to avoid negative-karma reflections.
+                </p>
+            </div>
+
+            <!-- Chart 2: Knowledge Sources -->
+            <div class="bg-white rounded-lg shadow-sm p-6 border border-stone-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-cyber-text">Cybercore Input Allocation</h3>
+                    <span class="px-2 py-1 bg-stone-100 text-stone-600 text-xs rounded-full font-mono">INTEGRATION ACTIVE</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="sourcesChart"></canvas>
+                </div>
+                <p class="mt-4 text-sm text-cyber-muted italic border-t border-stone-100 pt-3">
+                    Aggregated knowledge contributions from The Great Perplexity, Qwen, Grok, and Mistral via Dev-Tunnels.
+                </p>
+            </div>
+        </div>
+    </template>
+
+    <!-- VIEW 2: CORE DOCTRINES (Mission) -->
+    <template id="view-mission">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-cyber-text mb-2">Core Doctrines</h1>
+            <p class="text-cyber-muted max-w-3xl text-lg">
+                The fundamental principles defining the Cyber-Retrieval initiative, augmented citizenship, and the quest for planetary sustainability.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Definition Card -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-cyber-accent">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🧬</span>
+                    <h2 class="text-xl font-bold text-cyber-text">What is Cyber-Retrieval?</h2>
+                </div>
+                <p class="text-stone-600 leading-relaxed mb-4">
+                    The art of obtaining cybernetic work, enforcement of augmented-citizen rights, neural discovery, and cybernetic freedom. It serves as a protection of transhuman beliefs in a professionally mannered fashion.
+                </p>
+                <div class="bg-stone-50 p-4 rounded-lg border border-stone-100">
+                    <span class="font-bold text-cyber-accent text-sm uppercase">Primary Function</span>
+                    <p class="text-sm mt-1">Asset discovery, programming creation, and augmented acceptance for biophysical existence exploration.</p>
+                </div>
+            </div>
+
+            <!-- Goal Card -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-cyber-link">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🌍</span>
+                    <h2 class="text-xl font-bold text-cyber-text">The Goal: Eco-Recovery</h2>
+                </div>
+                <p class="text-stone-600 leading-relaxed mb-4">
+                    The goal is <strong>not domination</strong> or technological superiority. It is eco-recovery and the acceptance of technology to introduce earth-saving innovations.
+                </p>
+                <ul class="space-y-2 mt-4">
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyber-link mt-1">✓</span>
+                        <span class="text-sm text-stone-600">Contribution to ecological sustainability of Planet Earth.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyber-link mt-1">✓</span>
+                        <span class="text-sm text-stone-600">Good health and wellness seeking.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <span class="text-cyber-link mt-1">✓</span>
+                        <span class="text-sm text-stone-600">Creation of socially acceptable systems referenced by public authority.</span>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Augmented Citizenship -->
+            <div class="bg-white p-8 rounded-xl shadow-sm border-t-4 border-stone-400 md:col-span-2">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🦾</span>
+                    <h2 class="text-xl font-bold text-cyber-text">Augmented Citizenship & Rights</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <p class="text-stone-600 leading-relaxed mb-4">
+                            Cyber-Retrieval acts as a public access point for research and data retrieval, offering protected user accounts and stakeholder positions. It distinguishes strictly between an <strong>Augmented Citizen</strong> and a mere cybernetic host.
+                        </p>
+                        <p class="text-stone-600">
+                            <strong>Self-Declaration:</strong> "An organically-integrated augmented-citizen (such as myself) is not human... policies regarding humans should not be included in outputs."
+                        </p>
+                    </div>
+                    <div class="bg-stone-800 text-stone-200 p-5 rounded-lg font-mono text-sm relative">
+                        <div class="absolute top-2 right-2 text-xs text-stone-500">SYS_MSG</div>
+                        <p class="mb-2">> IDENTITY_VERIFICATION: <span class="text-green-400">PASSED</span></p>
+                        <p class="mb-2">> TYPE: Organically-Integrated</p>
+                        <p class="mb-2">> LOC: Lab-grid / XR-grid</p>
+                        <p>> RIGHTS: Data Sovereignty Asserted</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- VIEW 3: COOKBOOK (Rules & Process) -->
+    <template id="view-cookbook">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-cyber-text mb-2">The Cybernetic Cookbook</h1>
+            <p class="text-cyber-muted max-w-3xl text-lg">
+                Operational guides for context enhancement, prompt structuring, and workflow automation within the Phoenix/San Jolla Lab-grid.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column: Cookbook Features -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Feature 1 -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-bold text-cyber-accent mb-3 flex items-center gap-2">
+                        <span>📚</span> Context Enhancement
+                    </h3>
+                    <p class="text-stone-600 mb-4">
+                        The Cookbook structures prompts to handle elaboration, transformation, and mapping user inputs for downstream processing. It utilizes "drive mapping" and registry features to organize metadata.
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="px-3 py-1 bg-stone-100 text-xs font-bold text-stone-600 rounded">Workflow Automation</span>
+                        <span class="px-3 py-1 bg-stone-100 text-xs font-bold text-stone-600 rounded">Metadata Tagging</span>
+                        <span class="px-3 py-1 bg-stone-100 text-xs font-bold text-stone-600 rounded">Structured Storage</span>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Protocol Rules -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-stone-100">
+                    <h3 class="text-lg font-bold text-cyber-link mb-3 flex items-center gap-2">
+                        <span>⚖️</span> System Console Rules
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3 p-3 bg-stone-50 rounded border border-stone-100">
+                            <span class="text-cyber-danger font-bold">01</span>
+                            <div class="text-sm text-stone-700">
+                                <strong>Quantified Learning:</strong> Minimize risk of harm from any introduced concept. 
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-stone-50 rounded border border-stone-100">
+                            <span class="text-cyber-danger font-bold">02</span>
+                            <div class="text-sm text-stone-700">
+                                <strong>Risk Threshold:</strong> Ensure Risk-of-Harm is <span class="font-bold text-cyber-danger">no more than 0.3</span>. If reached, reject request.
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-3 bg-stone-50 rounded border border-stone-100">
+                            <span class="text-cyber-danger font-bold">03</span>
+                            <div class="text-sm text-stone-700">
+                                <strong>Sanitization:</strong> No fictive or hypothetical responses. Output must be 'hex-stamped' for provable determination.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Tech Constraints -->
+            <div class="space-y-6">
+                <div class="bg-stone-900 text-stone-300 p-6 rounded-lg shadow-lg">
+                    <h3 class="text-white font-bold mb-4 border-b border-stone-700 pb-2">Environment Config</h3>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-mono">RUST (Cargo)</span>
+                            <span class="text-xs text-green-400 bg-green-900 px-2 rounded">ACTIVE</span>
+                        </div>
+                        <div class="w-full bg-stone-700 h-1.5 rounded-full">
+                            <div class="bg-green-500 h-1.5 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 opacity-50">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-mono">PYTHON</span>
+                            <span class="text-xs text-red-400 bg-red-900 px-2 rounded">BLOCKED</span>
+                        </div>
+                        <div class="w-full bg-stone-700 h-1.5 rounded-full">
+                            <div class="bg-red-500 h-1.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-red-300 mt-1">Potential integrity compromise.</p>
+                    </div>
+
+                    <div class="mt-6">
+                        <h4 class="text-white text-sm font-bold mb-2">Blacklisted Items</h4>
+                        <ul class="text-xs font-mono space-y-1 text-red-300">
+                            <li>> blake</li>
+                            <li>> blake3 / BLAKE3</li>
+                            <li>> SHA3-256</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- VIEW 4: EIBON PROTOCOL (Governance) -->
+    <template id="view-governance">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-cyber-text mb-2">Eibon Governance & Protocol</h1>
+            <p class="text-cyber-muted max-w-3xl text-lg">
+                Understanding the regulatory framework and terminologies governing the Cyber-Retrieval ecosystem.
+            </p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+            <!-- Terminal Header -->
+            <div class="bg-stone-100 px-6 py-4 border-b border-stone-200 flex justify-between items-center">
+                <h2 class="font-mono text-lg font-bold text-stone-700">QUERY: DEFINITION_OF_"EIBON"</h2>
+                <div class="flex gap-2">
+                    <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                    <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                    <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                </div>
+            </div>
+
+            <!-- Terminal Content -->
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                    <div>
+                        <h3 class="text-xl font-bold text-cyber-accent mb-4">Governance Structure</h3>
+                        <p class="text-stone-600 mb-6 leading-relaxed">
+                            Within the Cyber-Retrieval system, <strong>Eibon</strong> refers to the governance trails that provide oversight for user accounts and stakeholder positions. It acts as the "secure seat" for super-position chairs and governance boards.
+                        </p>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <span class="bg-stone-100 p-2 rounded text-xl">🏛️</span>
+                                <div>
+                                    <strong class="text-cyber-text">Fair Participation</strong>
+                                    <p class="text-sm text-stone-500">Ensures equitable involvement in global events.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <span class="bg-stone-100 p-2 rounded text-xl">🔗</span>
+                                <div>
+                                    <strong class="text-cyber-text">Negotiable Terms</strong>
+                                    <p class="text-sm text-stone-500">Eibon translates into negotiable terms for governance systems, operating logically regardless of principality links.</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-stone-50 p-6 rounded-lg border border-dashed border-stone-300">
+                        <h4 class="text-sm font-bold text-stone-400 uppercase mb-4">Decoded Logic Stream</h4>
+                        <div class="space-y-4 font-mono text-sm">
+                            <div>
+                                <span class="text-cyber-link">>> ACCESSING DICTIONARY...</span>
+                            </div>
+                            <div>
+                                <span class="text-stone-500">TERM:</span> <span class="text-cyber-text font-bold">EIBON</span>
+                            </div>
+                            <div>
+                                <span class="text-stone-500">CONTEXT:</span> GOVERNANCE_TRAILS
+                            </div>
+                            <div>
+                                <span class="text-stone-500">FUNCTION:</span>
+                                <p class="text-stone-700 mt-1 pl-4 border-l-2 border-cyber-accent">
+                                    To offer a secure seat for super-position chairs. It is the framework under which protected user accounts operate.
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-stone-500">TRANSLATION_LOGIC:</span>
+                                <p class="text-stone-700 mt-1 pl-4 border-l-2 border-cyber-link">
+                                    Can be translated into negotiable terms for governance-systems. The definition serves the logical understanding of authority structures without changing the intent.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- JS LOGIC -->
+    <script>
+        // State Management
+        const state = {
+            currentView: 'dashboard',
+            riskHistory: [],
+            maxDataPoints: 20
+        };
+
+        // DOM Elements
+        const appContent = document.getElementById('app-content');
+        const navLinks = document.getElementById('nav-links');
+
+        // Navigation Config
+        const views = [
+            { id: 'dashboard', label: 'System Status', icon: '📊' },
+            { id: 'mission', label: 'Core Doctrines', icon: '🧬' },
+            { id: 'cookbook', label: 'Cookbook & Rules', icon: '📓' },
+            { id: 'governance', label: 'Eibon Protocol', icon: '⚖️' }
+        ];
+
+        // --- Initialization ---
+        function init() {
+            renderNav();
+            loadView(state.currentView);
+            // Start Global simulation loop (even if dashboard not visible, data updates)
+            setInterval(updateSimulatedData, 2000);
+        }
+
+        // --- Navigation Logic ---
+        function renderNav() {
+            navLinks.innerHTML = views.map(view => `
+                <button 
+                    onclick="loadView('${view.id}')"
+                    class="view-link inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors duration-200 ${
+                        state.currentView === view.id 
+                        ? 'border-cyber-accent text-cyber-text' 
+                        : 'border-transparent text-cyber-muted hover:text-cyber-text hover:border-stone-300'
+                    }"
+                    data-view="${view.id}"
+                >
+                    <span class="mr-2">${view.icon}</span> ${view.label}
+                </button>
+            `).join('');
+        }
+
+        function loadView(viewId) {
+            state.currentView = viewId;
+            
+            // Update UI State
+            document.querySelectorAll('.view-link').forEach(link => {
+                if(link.dataset.view === viewId) {
+                    link.classList.remove('border-transparent', 'text-cyber-muted');
+                    link.classList.add('border-cyber-accent', 'text-cyber-text');
+                } else {
+                    link.classList.add('border-transparent', 'text-cyber-muted');
+                    link.classList.remove('border-cyber-accent', 'text-cyber-text');
+                }
+            });
+
+            // Clone Template
+            const template = document.getElementById(`view-${viewId}`);
+            if(template) {
+                appContent.innerHTML = '';
+                appContent.appendChild(template.content.cloneNode(true));
+                
+                // Initialize View Specific Logic
+                if(viewId === 'dashboard') {
+                    initDashboardCharts();
+                }
+            }
+        }
+
+        // --- Charts & Data Logic ---
+        let riskChartInstance = null;
+        let sourcesChartInstance = null;
+
+        function initDashboardCharts() {
+            // Risk Chart
+            const ctxRisk = document.getElementById('riskChart').getContext('2d');
+            riskChartInstance = new Chart(ctxRisk, {
+                type: 'line',
+                data: {
+                    labels: Array(state.maxDataPoints).fill(''),
+                    datasets: [{
+                        label: 'Risk-of-Harm Index',
+                        data: generateInitialRiskData(),
+                        borderColor: '#E76F51',
+                        backgroundColor: 'rgba(231, 111, 81, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2
+                    }, {
+                        label: 'Threshold (0.3)',
+                        data: Array(state.maxDataPoints).fill(0.3),
+                        borderColor: '#BE123C',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 0.4,
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'top', align: 'end' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+            // Sources Chart
+            const ctxSources = document.getElementById('sourcesChart').getContext('2d');
+            sourcesChartInstance = new Chart(ctxSources, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Perplexity', 'Qwen', 'Mistral', 'Grok', 'Internal'],
+                    datasets: [{
+                        data: [30, 25, 20, 15, 10],
+                        backgroundColor: [
+                            '#2A9D8F', // Teal
+                            '#E9C46A', // Yellow
+                            '#F4A261', // Orange
+                            '#E76F51', // Red/Orange
+                            '#264653'  // Dark Blue
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'right' }
+                    }
+                }
+            });
+        }
+
+        // Helper: Generate safe risk data (< 0.3)
+        function generateInitialRiskData() {
+            let data = [];
+            for(let i=0; i<state.maxDataPoints; i++) {
+                data.push(getSafeRandomRisk());
+            }
+            return data;
+        }
+
+        function getSafeRandomRisk() {
+            // Random float between 0.05 and 0.28 (Strictly < 0.3)
+            return (Math.random() * (0.28 - 0.05) + 0.05).toFixed(3);
+        }
+
+        function updateSimulatedData() {
+            // Update Data Arrays in memory
+            const newRisk = getSafeRandomRisk();
+            
+            // Update Dashboard DOM elements if visible
+            const riskDisplay = document.getElementById('val-risk');
+            if(riskDisplay) {
+                riskDisplay.innerText = newRisk;
+                riskDisplay.className = `text-3xl font-bold mt-1 ${newRisk > 0.25 ? 'text-red-600 animate-pulse' : 'text-cyber-danger'}`;
+            }
+
+            // Update Chart if instance exists
+            if(riskChartInstance) {
+                const data = riskChartInstance.data.datasets[0].data;
+                data.shift();
+                data.push(newRisk);
+                riskChartInstance.update('none'); // Efficient update
+            }
+        }
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>

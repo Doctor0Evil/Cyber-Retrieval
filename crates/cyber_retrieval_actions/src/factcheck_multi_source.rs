@@ -19,6 +19,7 @@ use cyber_retrieval_cookbook_academic::{
     RetrievalIntent,
     XrZone,
 };
+
 use rand::distributions::{Distribution, WeightedIndex};
 use rand::thread_rng;
 
@@ -85,8 +86,9 @@ pub fn factcheck_phoenix_xr_grid_policy(
     req: FactcheckRequest,
     mut rope: NeuralRope,
 ) -> (NeuralRope, FactcheckDecision) {
-    // 1) Normalise into PromptEnvelope
     let ksr0 = KSR_CEILING_DEFAULT;
+
+    // 1) Normalise into PromptEnvelope (typed intent + domain + zone).
     let envelope = PromptEnvelope::new(
         make_trace_id(&req.host_did, &req.query_text),
         req.query_text.clone(),
@@ -98,11 +100,11 @@ pub fn factcheck_phoenix_xr_grid_policy(
         req.created_at,
     );
 
-    // 2) Build diversity‑aware portfolio
+    // 2) Build diversity‑aware portfolio for Phoenix XR‑grid.
     let portfolio = build_portfolio_for_phoenix_xr(&envelope);
 
-    // 3) Simulate retrieval + entropy/Bayes scoring.
-    // In your stack this is where RAG/web/etc. plug in.
+    // 3) Score portfolio with Bayes‑style posterior + entropy hooks.
+    // In production, plug real Cyber-Retrieval RAG here.
     let bundles = score_portfolio_bayesian(&portfolio, ksr0);
 
     // 4) Aggregate into global metrics (entropy + posterior support + RoH).
@@ -113,7 +115,7 @@ pub fn factcheck_phoenix_xr_grid_policy(
         .sum::<f32>()
         .clamp(0.0, 1.0);
 
-    // Map KSR + entropy into a 0–100 RoH index (≤ 30 required).
+    // Map KSR + entropy into a 0–100 RoH index.
     let roh_index = ksrs_entropy_to_roh_index(ksr0, global_entropy);
 
     // 5) Decide if this XR policy factcheck is safe enough to proceed.
@@ -133,7 +135,7 @@ pub fn factcheck_phoenix_xr_grid_policy(
         explanation,
     };
 
-    // 6) Log as NeuralRope segment for CI / CybercoreBrain.
+    // 6) Log as NeuralRope segment for CI / governance.
     let seg_index = rope.segments.len() as u32;
     let segment = NeuralRopeSegment {
         rope_id: rope.id.clone(),
@@ -149,7 +151,7 @@ pub fn factcheck_phoenix_xr_grid_policy(
     (rope, decision)
 }
 
-/// Default Rope entry point for a Phoenix XR‑grid policy query.
+/// Default Rope entry for a Phoenix XR‑grid policy query.
 pub fn run_factcheck_for_phoenix_query(
     host_did: &str,
     query_text: &str,
@@ -176,16 +178,15 @@ fn crate_allowed_code_actions() -> cyber_retrieval_cookbook_academic::AllowedCod
     cyber_retrieval_cookbook_academic::AllowedCodeActions {
         allow_code_synthesis: false,
         allow_manifest_templates: true,
-        retrieval_only: false,
+        retrieval_only: true,
     }
 }
 
 fn build_portfolio_for_phoenix_xr(envelope: &PromptEnvelope) -> Vec<PortfolioQuery> {
-    // Fixed heterogeneity: specs, governance, academic, manifests, blogs. [file:54][file:56]
     vec![
         PortfolioQuery {
             text: format!(
-                "{} Phoenix XR‑grid safety spec neurorights wetware",
+                "{} Phoenix XR‑grid safety spec neurorights",
                 envelope.prompt_text
             ),
             source_class: SourceClass::Spec,
@@ -194,7 +195,7 @@ fn build_portfolio_for_phoenix_xr(envelope: &PromptEnvelope) -> Vec<PortfolioQue
         },
         PortfolioQuery {
             text: format!(
-                "{} Phoenix XR‑grid governance registry CHAT/Blood",
+                "{} Phoenix XR‑grid governance registry",
                 envelope.prompt_text
             ),
             source_class: SourceClass::GovernanceRegistry,
@@ -203,7 +204,7 @@ fn build_portfolio_for_phoenix_xr(envelope: &PromptEnvelope) -> Vec<PortfolioQue
         },
         PortfolioQuery {
             text: format!(
-                "{} XR‑grid neurorights & BCI policy academic",
+                "{} XR‑grid neurorights & BCI academic policy",
                 envelope.prompt_text
             ),
             source_class: SourceClass::Academic,
@@ -231,15 +232,13 @@ fn build_portfolio_for_phoenix_xr(envelope: &PromptEnvelope) -> Vec<PortfolioQue
     ]
 }
 
-/// Stub scoring: in production, plug real retrieval + evidence.
-/// Here we ensure entropy/Bayes wiring and K/S/R propagation.
+/// Stub scoring: plug real retrieval + evidence in production.
 fn score_portfolio_bayesian(
     portfolio: &[PortfolioQuery],
     prior_ksr: KsrTriple,
 ) -> Vec<FactBundle> {
     let mut rng = thread_rng();
 
-    // Prefer Spec/Governance/Academic in weighting, down‑weight Blog. [file:56]
     let weights: Vec<f32> = portfolio
         .iter()
         .map(|q| match q.source_class {
@@ -258,7 +257,7 @@ fn score_portfolio_bayesian(
         .iter()
         .enumerate()
         .map(|(i, q)| {
-            let draws = 8 + i as i32; // simple heterogeneity
+            let draws = 8 + i as i32;
             let mut hits = 0;
             for _ in 0..draws {
                 if dist.sample(&mut rng) == i {
@@ -268,18 +267,17 @@ fn score_portfolio_bayesian(
             let post = (hits as f32 + 1.0) / (draws as f32 + total_weight);
             let local_entropy = entropy01(post);
 
-            // Heuristic K/S/R tweak: specs & governance tighten risk band slightly.
             let ksrs = match q.source_class {
                 SourceClass::Spec | SourceClass::GovernanceRegistry => KsrTriple::new(
-                    prior_ksr.knowledge.saturating_add(0x01),
-                    prior_ksr.social.saturating_add(0x01),
-                    prior_ksr.risk.saturating_sub(0x01),
+                    prior_ksr.knowledge.saturating_add(1),
+                    prior_ksr.social.saturating_add(1),
+                    prior_ksr.risk.saturating_sub(1),
                 ),
                 SourceClass::Academic => prior_ksr,
                 SourceClass::DeviceManifest | SourceClass::BlogLike => KsrTriple::new(
-                    prior_ksr.knowledge.saturating_sub(0x01),
+                    prior_ksr.knowledge.saturating_sub(1),
                     prior_ksr.social,
-                    prior_ksr.risk.saturating_add(0x01),
+                    prior_ksr.risk.saturating_add(1),
                 ),
             };
 
@@ -294,12 +292,10 @@ fn score_portfolio_bayesian(
         .collect()
 }
 
-/// Convert a Bernoulli p into normalised entropy in [0,1].
 fn entropy01(p: f32) -> f32 {
     let p = p.clamp(1e-6, 1.0 - 1e-6);
     let q = 1.0 - p;
     let h = -p * p.ln() - q * q.ln();
-    // Normalise by ln 2 to get bits, then by 1 bit to stay ≤1.
     (h / std::f32::consts::LN_2).clamp(0.0, 1.0)
 }
 
@@ -316,19 +312,16 @@ fn compute_global_entropy(bundles: &[FactBundle]) -> f32 {
         .clamp(0.0, 1.0)
 }
 
-/// Map KSR + entropy into a 0–100 RoH for this academic lane.
 fn ksrs_entropy_to_roh_index(ksr: KsrTriple, global_entropy: f32) -> u8 {
     let k = ksr.knowledge as f32 / 255.0;
     let s = ksr.social as f32 / 255.0;
     let r = ksr.risk as f32 / 255.0;
 
-    // Higher knowledge/social reduce RoH, higher risk + entropy increase it. [file:56]
     let base = 0.2 * (1.0 - k) + 0.2 * (1.0 - s) + 0.4 * r + 0.2 * global_entropy;
     let roh = (base * 100.0).clamp(0.0, 100.0);
     roh as u8
 }
 
-/// Convert KSR triple into a scalar “KnowledgeFactor” in [0,1].
 fn ksrs_to_knowledge_factor(ksr: KsrTriple) -> f32 {
     let k = ksr.knowledge as f32 / 255.0;
     let s = ksr.social as f32 / 255.0;
@@ -336,7 +329,6 @@ fn ksrs_to_knowledge_factor(ksr: KsrTriple) -> f32 {
     (0.5 * k + 0.3 * s + 0.2 * (1.0 - r)).clamp(0.0, 1.0)
 }
 
-/// Simple FNV‑1a 64‑bit trace id.
 fn make_trace_id(host_did: &str, text: &str) -> String {
     let input = format!("{host_did}::{text}");
     let mut acc: u64 = 0xcbf29ce484222325;
@@ -358,8 +350,6 @@ mod tests {
 
         assert!(!rope.segments.is_empty());
         assert!(decision.roh_index <= 100);
-        // For sensible default params, this should usually pass RoH ≤ 30.
-        // CI in your XR‑grid lane can tighten this assertion.
         assert!(decision.roh_index <= 40);
     }
 }

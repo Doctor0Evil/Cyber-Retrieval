@@ -1,0 +1,14 @@
+aln
+QPU.Datashard evolution.research.manifest.v1.aln
+path,entitytype,field,key,value,datatype,constraints,notes
+evo.research,meta,scalar,roh-max,0.3,float,range0,1,Global Risk-of-Harm ceiling
+
+evo.research,experiment,scalar,id,comfort-corridor-tuning,string,primarykey,Daily comfort/pain band calibration
+evo.research,experiment,scalar,domain,NeuromorphReflex,string,0,Uses reflex micro-domain only
+evo.research,experiment,flag,requires-explicit-consent,true,bool,nonnullable,Host must opt-in per session
+evo.research,experiment,flag,uses-envelope-kernel,true,bool,nonwaivable,All deltas scaled via DECAY kernel
+evo.research,experiment,flag,no-rights-change,true,bool,nonwaivable,No impact on EVOLVE/BRAIN/SMART rights
+
+evo.research,experiment,scalar,id,eco-budget-tuning,string,primarykey,Eco-budget vs. neuromorph workload
+evo.research,experiment,scalar,domain,General,string,0,Scheduling only, no identity changes
+evo.research,experiment,flag,eco-strict,true,bool,nonwaivable,Never exceed eco envelope

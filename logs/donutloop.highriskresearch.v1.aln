@@ -1,0 +1,18 @@
+particle donutloop.highriskresearch.v1
+  meta
+    id        donutloop.highriskresearch.v1
+    name      "High-Risk Research Donutloop Ledger"
+    kind      "ledger.donutloop"
+    version   "v1"
+  fields
+    entry_id              string
+    proposal_id           string
+    subjectid             string
+    changetype            string   # always "HighRiskResearch"
+    roh_before            f32
+    roh_after             f32
+    roh_delta             f32
+    token_id              string
+    physioguard_state     string   # hash of BioState slice
+    timestamp_utc         string
+    hexstamp              string

@@ -1,0 +1,4 @@
+policy: rollback.sovereignty.v1
+rule: "No evolution-step, control-plane configuration, or nanoswarm parameter set may be rolled back or downgraded unless rollback_authorizer_did == host_did AND actor_id == host_did AND neurorights_flags includes 'CONSENT_OK'. Any other rollback attempt MUST be logged and MUST degrade to BRAKE-only behavior in all controllers."
+roh_ceiling: 0.3
+cybostate_floor: 0.5

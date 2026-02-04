@@ -1,0 +1,34 @@
+particle nanoswarm.neurothermo.corridor.v1
+
+metric corridor_risk_global
+  domain  nanoswarm
+  module  neurothermo
+  op      max
+  unit    scalar
+  bound   0.30
+  evidence 0x01a3c9b2 0x4be79d01 0x9cd4a7e8 0x2f8c6b44 0x7e1da2ff \
+           0x5b93e0c3 0xd0174aac 0x6ac2f9d9 0xc4e61b20 0x8f09d5ee
+
+metric corridor_temp_core
+  domain  nanoswarm
+  module  neurothermo
+  op      max
+  unit    celsius
+  bound   38.5
+
+metric corridor_il6_level
+  domain  nanoswarm
+  module  neurothermo
+  op      max
+  unit    pg_per_ml
+  bound   5.0
+
+metric corridor_lifeforce_integrity
+  domain  nanoswarm
+  module  lifeforce
+  op      min
+  unit    scalar
+  bound   0.80
+
+contract biosafeguard!
+  neurorights mental_privacy non_coercion rollback_anytime

@@ -1,0 +1,22 @@
+particle nanoswarm.lifeforce.envelope.v1
+
+metric envelope_bloodtoken_debit_limit
+  domain  lifeforce
+  module  nanoswarm
+  op      max
+  unit    blood_token
+  bound   1000
+
+metric envelope_chi_band_snap_point
+  domain  lifeforce
+  module  nanoswarm
+  op      max
+  unit    chi_unit
+  bound   0.15
+
+metric envelope_roh_ceiling
+  domain  lifeforce
+  module  governance
+  op      max
+  unit    scalar
+  bound   0.30

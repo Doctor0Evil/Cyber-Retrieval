@@ -1,0 +1,19 @@
+{
+  "upgrade_id": "visual.bci.session.v3",
+  "domain": "bci",
+  "evidence_tags": [
+    "a1f3c9b2","4be79d01","9cd4a7e8","2f8c6b44",
+    "7e1da2ff","5b93e0c3","d0174aac","6ac2f9d9",
+    "c4e61b20","8f09d5ee"
+  ],
+  "aln_policy_ids": [
+    "rollbackanytime.v1",
+    "nononconsensualmodulation.v1",
+    "noraweegexport.v1"
+  ],
+  "roles": [
+    "PatientConsent",
+    "EthicsBoard"
+  ],
+  "neurorights_compliant": true
+}

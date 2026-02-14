@@ -1,0 +1,28 @@
+aln particle augmented.citizen.rights.kernel.v1
+  id                string
+  version           string        ; e.g. "v1"
+  issuer_did        string        ; governance / host council
+
+  ;; Neurorights floors (non‑regressible once true)
+  cognitive_liberty_min          bool
+  mental_privacy_min             bool
+  mental_integrity_min           bool
+  psychological_continuity_min   bool
+  fair_access_min                bool
+
+  ;; Downgrade / de‑augmentation rules
+  no_forced_deaugmentation       bool
+  no_policy_only_rollback        bool
+  host_initiated_only_downgrade  bool
+  cybostate_veto_one_way         bool   ; veto new steps, never kill‑switch
+
+  ;; Linkage to other kernels
+  rights_kernel_rank             uint32 ; precedence in lattice
+  cybostate_factor_ref           string ; -> cybostate.factor.citizen.v1
+  bio_safety_envelope_ref        string ; -> bio.safety.envelope.citizen.v1
+
+  ;; Invariants (machine-enforced doctrine)
+  invariant
+    "Once granted, neurorights_*_min SHALL NOT be regressed or revoked
+     by policy, vendor, regulator, or third‑party actor."
+end

@@ -1,0 +1,24 @@
+aln particle off_world_jurisdiction.artemis_accords.v1
+  id                 string
+  version            string
+  issuer             string      ; e.g. "cyb.ai/orbital-governance"
+  reference_text     string      ; link/hash to Artemis Accords digest
+
+  ;; Safety zone & due regard parameters
+  safety_zone_radius_m           float
+  due_regard_min_distance_m      float
+  collision_risk_ceiling         float
+
+  ;; Interactions with host kernels
+  must_respect_rights_kernel_ref string   ; augmented.citizen.rights.kernel.v1
+  must_respect_cybostate_ref     string   ; cybostate.factor.citizen.v1
+  must_respect_nanoswarm_field   string   ; nanoswarm.compliance.field.v1
+
+  forbid_disable_host_veto       bool
+  forbid_rights_regression       bool
+
+  invariant
+    "Off‑world jurisdiction MAY constrain operations (safety zones, due regard),
+     but SHALL NOT disable host veto power, SHALL NOT regress neurorights,
+     and SHALL NOT raise bio limits above nanoswarm.compliance.field.v1 thresholds."
+end

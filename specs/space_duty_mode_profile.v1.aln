@@ -1,0 +1,35 @@
+aln particle space_duty_mode_profile.v1
+  id                 string
+  host_did           string
+  mission_id         string
+  version            string
+
+  base_profile_ref   string ; augmented.citizen.profile.v1
+
+  ;; Duty modes (per-host)
+  mode               enum
+                     - transit
+                     - surface_ops
+                     - eva
+                     - rehab
+                     - sleep_cycle
+
+  ;; Jurisdiction stack (lattice-style)
+  jurisdiction_stack list string ; e.g. ["off_world_jurisdiction.artemis_accords.v1",
+                                       "policy.jurisdiction.lattice.v2"]
+
+  ;; Biophysical envelopes for this mode
+  radiation_budget_gy_per_day      float
+  duty_cycle_max                   float  ; 0..1
+  microgravity_countermeasure_max  float  ; work fraction
+  psych_density_max                float  ; normalized 0..1
+
+  ;; Constraint flags
+  preserve_rights_kernel           bool
+  allow_tighter_safety_only        bool
+
+  invariant
+    "Mode switches MAY tighten biophysical envelopes and duty-cycle ceilings,
+     but SHALL NOT weaken neurorights floors defined in augmented.citizen.rights.kernel.v1
+     nor disable cybostate veto or rollback observability."
+end

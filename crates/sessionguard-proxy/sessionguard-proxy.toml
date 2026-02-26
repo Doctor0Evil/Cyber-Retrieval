@@ -1,0 +1,6 @@
+listen_addr = "127.0.0.1:8080"
+backend_base_url = "https://your-ai-chat-backend.example.com"
+expected_device_fingerprint = "YOUR-PC-FINGERPRINT"
+dns_fail_closed = true
+doh_pinned = true
+tls_pinned = true
